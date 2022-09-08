@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { useState, useRef} from "react";
 
 import { GlobalStyle } from './GlobalStyles';
 import {Statistics} from './Statistics/Statistics'
@@ -6,55 +6,55 @@ import { Section } from './Section/Section';
 import { FeedbackOptions } from './FeedbackOptions/FeedbackOptions';
 import {Notification} from './Notification/Notification'
 
-export class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0
-  };
+export const App = () => {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
 
-  onBtnClick = (evt) => {
-    if (evt.target.textContent.toLowerCase() === "good") {
-      this.setState(prevState => ({ good: prevState.good + 1 }))
-    } else if (evt.target.textContent.toLowerCase() === "neutral") {
-      this.setState(prevState => ({ neutral: prevState.neutral + 1 }))
-    } else if (evt.target.textContent.toLowerCase() === "bad") {
-      this.setState(prevState => ({ bad: prevState.bad + 1 }))
+  const positiveFeedback = useRef(0);
+  const totalValue = useRef(0);
+
+  const onBtnClick = (evt) => {
+    switch (evt.target.textContent.toLowerCase()) {
+      case "good":
+        setGood(prevState => (prevState + 1));
+        break;
+      case "neutral":
+        setNeutral(prevState => (prevState + 1));
+        break;
+      case "bad":
+        setBad(prevState => (prevState + 1));
+        break;
+      default:
+        console.log('Что-то пошло не так')
     }
   };
 
-  render() {
-    const { good, neutral, bad } = this.state;
-    let positiveFeedback = 0;
-    let totalValue = 0;
+  const countTotalFeedback = () => {
+    totalValue.current = good + neutral + bad;
+    return totalValue.current;
+  }
 
-    const countTotalFeedback = () => {
-      totalValue = good + neutral + bad;
-      return totalValue;
-    }
-    const countPositiveFeedbackPercentage = () => {
-      if (good !== 0) {
-        positiveFeedback = Math.round(good / totalValue * 100);
-      return positiveFeedback;
-      }
-    }
+  const countPositiveFeedbackPercentage = () => {
+    positiveFeedback.current = Math.round(good / totalValue.current * 100);
+    return positiveFeedback.current;
+  }
 
-    countTotalFeedback();
-    countPositiveFeedbackPercentage();
+  countTotalFeedback();
+  countPositiveFeedbackPercentage();
+ 
     return (
       <>
         <Section title="Please leave feedback">
-          <FeedbackOptions onLeaveFeedback={this.onBtnClick}/>
+          <FeedbackOptions onLeaveFeedback={onBtnClick}/>
         </Section>
       
         <Section title="Statistics">
-          {totalValue === 0 ? (<Notification messege="There is no feedback" />) : (
-            <Statistics good={good} neutral={neutral} bad={bad} total={totalValue} positivePercentage={positiveFeedback} />
-          )} 
+          {totalValue.current === 0 ? (<Notification messege="There is no feedback" />) : (
+            <Statistics good={good} neutral={neutral} bad={bad} total={totalValue.current} positivePercentage={positiveFeedback.current} />)} 
         </Section>
         
         <GlobalStyle/>
       </>
     );
-  }
 };
